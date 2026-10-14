@@ -1,0 +1,29 @@
+{% macro card(p, track=None, props=None) %}
+<a href="/p/{{ p.product_id }}" class="group block rounded-xl bg-white ring-1 ring-slate-200 hover:ring-brand-500 hover:shadow-md transition overflow-hidden"
+   {% if track %}data-track="{{ track }}" data-props='{{ props|tojson }}'{% endif %}>
+  <div class="aspect-square bg-slate-100"><img src="/img/{{ p.product_id }}/0.svg" alt="" class="w-full h-full object-cover" loading="lazy"></div>
+  <div class="p-3">
+    <div class="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:text-brand-600">{{ p.name }}</div>
+    <div class="mt-1 flex items-center gap-2 text-xs">
+      <span class="rounded bg-emerald-600 text-white px-1.5 py-0.5">{{ '%.1f'|format(p.rating) }} ★</span>
+      <span class="text-slate-400">({{ p.review_count }})</span>
+    </div>
+    <div class="mt-1 flex items-baseline gap-2">
+      <span class="font-semibold">{{ p.price|inr }}</span>
+      {% if p.has_offer %}<span class="text-xs text-emerald-700">Offer</span>{% endif %}
+    </div>
+  </div>
+</a>
+{% endmacro %}
+
+{% macro cause_badge(cause) %}
+{% set colors = {'search':'bg-sky-100 text-sky-800','category_nav':'bg-cyan-100 text-cyan-800','media':'bg-pink-100 text-pink-800','description':'bg-violet-100 text-violet-800','reviews':'bg-amber-100 text-amber-800','warranty_returns':'bg-orange-100 text-orange-800','pricing':'bg-red-100 text-red-800','offers':'bg-lime-100 text-lime-800','delivery':'bg-indigo-100 text-indigo-800','payment':'bg-fuchsia-100 text-fuchsia-800','none':'bg-slate-100 text-slate-600'} %}
+<span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium {{ colors.get(cause, 'bg-slate-100') }}">{{ LABEL.get(cause, cause) }}</span>
+{% endmacro %}
+
+{% macro risk_bar(r) %}
+<div class="flex items-center gap-2">
+  <div class="w-16 h-1.5 rounded bg-slate-200 overflow-hidden"><div class="h-full {{ 'bg-red-500' if r >= 0.7 else ('bg-amber-500' if r >= 0.45 else 'bg-emerald-500') }}" style="width: {{ (r * 100)|round }}%"></div></div>
+  <span class="text-xs tabular-nums">{{ (r * 100)|round|int }}%</span>
+</div>
+{% endmacro %}

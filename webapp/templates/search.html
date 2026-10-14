@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}{{ q }} — ShopLens{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  {% if q %}
+    <h1 class="text-lg"><span class="text-slate-500">{{ results|length }} results for</span> “{{ q }}”</h1>
+    {% if not results %}
+      <div class="mt-8 rounded-xl bg-white ring-1 ring-slate-200 p-8 text-center">
+        <div class="text-4xl">🔍</div>
+        <p class="mt-2 font-medium">No results for “{{ q }}”</p>
+        <p class="text-sm text-slate-500 mt-1">Try a different word. Popular searches:</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-2">
+          {% for s in suggestions %}<a href="/search?q={{ s }}" class="rounded-full bg-slate-100 px-3 py-1 text-sm hover:bg-brand-100">{{ s }}</a>{% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {% for p in results %}{{ card(p, 'search_result_clicked', {'rank': loop.index}) }}{% endfor %}
+    </div>
+  {% else %}
+    <p class="text-slate-500">Type something in the search box above.</p>
+  {% endif %}
+</div>
+{% endblock %}

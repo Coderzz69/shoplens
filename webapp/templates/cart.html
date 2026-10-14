@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Cart — ShopLens{% endblock %}
+{% block body_attrs %}{% if last %}data-product="{{ last.product_id }}" data-category="{{ last.category }}"{% endif %}
+  data-view-props='{{ {"cart_value": totals.subtotal}|tojson }}'{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-semibold">Your cart</h1>
+  {% if not lines %}
+    <div class="mt-8 rounded-xl bg-white ring-1 ring-slate-200 p-10 text-center">
+      <div class="text-4xl">🛒</div><p class="mt-2">Your cart is empty.</p>
+      <a href="/" class="inline-block mt-4 text-brand-600 hover:underline">Continue shopping</a>
+    </div>
+  {% else %}
+  <div class="mt-4 grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-3">
+      {% for l in lines %}
+      <div class="flex gap-4 rounded-xl bg-white ring-1 ring-slate-200 p-3">
+        <img src="/img/{{ l.product_id }}/0.svg" class="w-20 h-20 rounded-lg" alt="">
+        <div class="flex-1">
+          <a href="/p/{{ l.product_id }}" class="font-medium hover:text-brand-600">{{ l.name }}</a>
+          <div class="text-sm text-slate-500">Qty {{ l.qty }} · {{ 'COD available' if l.cod_allowed else 'Prepaid only' }}</div>
+          <div class="font-semibold mt-1">{{ (l.price * l.qty)|inr }}</div>
+        </div>
+        <form method="post" action="/cart/remove"><input type="hidden" name="product_id" value="{{ l.product_id }}">
+          <button class="text-sm text-slate-400 hover:text-red-600">Remove</button></form>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="rounded-xl bg-white ring-1 ring-slate-200 p-5 h-fit">
+      <form method="post" action="/cart/coupon" class="flex gap-2">
+        <input name="code" placeholder="Coupon code" value="{{ coupon or '' }}" class="flex-1 rounded-lg border px-3 py-2 text-sm uppercase">
+        <button class="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Apply</button>
+      </form>
+      {% if coupon_msg %}<div class="mt-2 text-sm {{ 'text-emerald-700' if coupon_msg.startswith('✓') else 'text-red-600' }}">{{ coupon_msg }}</div>{% endif %}
+      <div class="mt-1 text-xs text-slate-400">Try FIRST50, FEST20 or SAVE5</div>
+      <dl class="mt-4 space-y-1 text-sm">
+        <div class="flex justify-between"><dt>Subtotal</dt><dd>{{ totals.subtotal|inr }}</dd></div>
+        <details data-track="fee_breakdown_viewed" data-props='{{ {"delivery_fee": totals.delivery_fee, "platform_fee": totals.platform_fee}|tojson }}'>
+          <summary class="flex justify-between"><span class="underline decoration-dotted">Fees</span><span>{{ (totals.delivery_fee + totals.platform_fee)|inr }}</span></summary>
+          <div class="pl-3 text-slate-500">
+            <div class="flex justify-between"><span>Delivery {% if totals.delivery_fee %}(free above ₹499){% endif %}</span><span>{{ totals.delivery_fee|inr }}</span></div>
+            <div class="flex justify-between"><span>Platform fee</span><span>{{ totals.platform_fee|inr }}</span></div>
+          </div>
+        </details>
+        {% if totals.discount %}<div class="flex justify-between text-emerald-700"><dt>Discount</dt><dd>−{{ totals.discount|inr }}</dd></div>{% endif %}
+        <div class="flex justify-between border-t pt-2 font-semibold text-base"><dt>Total</dt><dd>{{ totals.total|inr }}</dd></div>
+      </dl>
+      <a href="/checkout" class="mt-4 block text-center rounded-xl bg-brand-600 hover:bg-brand-700 text-white py-3 font-semibold">Proceed to checkout</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

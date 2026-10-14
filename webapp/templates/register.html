@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Sign up — ShopLens{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto mt-12 bg-white rounded-2xl ring-1 ring-slate-200 p-8">
+  <h1 class="text-2xl font-bold">Create your account</h1>
+  {% if error %}<div class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</div>{% endif %}
+  <form method="post" action="/register" class="mt-6 space-y-4" id="reg">
+    <div class="grid grid-cols-2 gap-2 text-sm">
+      <label class="flex items-center gap-2 rounded-lg border p-3 cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-brand-500">
+        <input type="radio" name="role" value="customer" {% if role != 'supplier' %}checked{% endif %}> I want to shop</label>
+      <label class="flex items-center gap-2 rounded-lg border p-3 cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-brand-500">
+        <input type="radio" name="role" value="supplier" {% if role == 'supplier' %}checked{% endif %}> I want to sell</label>
+    </div>
+    <label class="block text-sm">Full name<input name="name" required class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm">Email<input name="email" type="email" required class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm">Password <span class="text-slate-400">(8+ characters)</span><input name="password" type="password" minlength="8" required class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm" data-for="customer">Delivery pincode<input name="pincode" inputmode="numeric" maxlength="6" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm" data-for="supplier">Store name<input name="store_name" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <button class="w-full rounded-lg bg-brand-600 text-white py-2.5 font-medium hover:bg-brand-700">Create account</button>
+  </form>
+  <p class="text-sm text-center mt-4">Already have an account? <a href="/login" class="text-brand-600 hover:underline">Log in</a></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const f = document.getElementById('reg');
+  const sync = () => { const r = f.role.value; f.querySelectorAll('[data-for]').forEach(el => el.hidden = el.dataset.for !== r); };
+  f.addEventListener('change', sync); sync();
+</script>
+{% endblock %}

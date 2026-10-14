@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ShopLens{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#1e1b4b' } } } } }</script>
+  <link rel="stylesheet" href="/static/app.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col"
+      data-page="{{ page|default('other') }}" {% block body_attrs %}{% endblock %}>
+{% if user and user.role == 'supplier' %}
+<header class="bg-brand-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-6">
+    <a href="/supplier" class="font-bold text-lg tracking-tight">ShopLens <span class="text-brand-100 font-normal text-sm">Seller Hub</span></a>
+    <nav class="flex gap-4 text-sm text-brand-100">
+      <a href="/supplier" class="hover:text-white">Dashboard</a>
+      <a href="/supplier/products" class="hover:text-white">Products</a>
+      <a href="/supplier/live" class="hover:text-white">Live sessions</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-3 text-sm">
+      <span class="hidden sm:inline text-brand-100">{{ user.store_name }}</span>
+      <form method="post" action="/logout"><button class="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20">Log out</button></form>
+    </div>
+  </div>
+</header>
+{% else %}
+<header class="bg-white border-b sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+    <a href="/" class="font-extrabold text-xl text-brand-600 tracking-tight shrink-0">ShopLens</a>
+    <form action="/search" class="flex-1 max-w-2xl">
+      <input name="q" value="{{ q|default('') }}" placeholder="Search for sofa, earbuds, kurta, atta…"
+             class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+    </form>
+    <nav class="flex items-center gap-3 text-sm shrink-0">
+      {% if user %}
+        <a href="/orders" class="hidden sm:inline hover:text-brand-600">Orders</a>
+        <a href="/cart" class="relative hover:text-brand-600">🛒 Cart{% if cart_count %}<span class="ml-1 rounded-full bg-brand-600 text-white px-1.5 text-xs">{{ cart_count }}</span>{% endif %}</a>
+        <form method="post" action="/logout"><button class="text-slate-500 hover:text-slate-800">Log out</button></form>
+      {% else %}
+        <a href="/login" class="hover:text-brand-600">Log in</a>
+        <a href="/register" class="rounded-lg bg-brand-600 text-white px-3 py-1.5 hover:bg-brand-700">Sign up</a>
+      {% endif %}
+    </nav>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 h-10 flex items-center gap-5 text-sm text-slate-600 overflow-x-auto">
+    {% for c, label in CATEGORY_LABEL.items() %}
+      <a href="/c/{{ c }}" class="hover:text-brand-600 whitespace-nowrap" data-track="category_viewed" data-props='{"path":"{{ label }}"}'>{{ label }}</a>
+    {% endfor %}
+    <a href="/register?role=supplier" class="ml-auto text-slate-400 hover:text-brand-600 whitespace-nowrap">Sell on ShopLens</a>
+  </div>
+</header>
+{% endif %}
+
+<main class="flex-1">{% block content %}{% endblock %}</main>
+
+<footer class="text-xs text-slate-400 text-center py-6">ShopLens — friction-detection demo store. Payments are simulated.</footer>
+
+{% if not (user and user.role == 'supplier') %}
+<div id="nudge" class="hidden fixed bottom-5 right-5 z-50 w-80 rounded-xl bg-white shadow-2xl ring-1 ring-brand-100 p-4 nudge-in">
+  <div class="flex items-start gap-2">
+    <span class="text-xl">🤝</span>
+    <div class="flex-1">
+      <div class="text-[11px] uppercase tracking-wide text-brand-600 font-semibold">Shopping assistant</div>
+      <div data-n="title" class="font-semibold mt-0.5"></div>
+      <p data-n="body" class="text-sm text-slate-600 mt-1"></p>
+      <p data-n="why" class="text-[11px] text-slate-400 mt-2"></p>
+      <a data-n="link" href="#" class="hidden inline-block mt-2 text-sm font-medium text-brand-600 hover:underline">Show me →</a>
+    </div>
+    <button data-n="close" class="text-slate-400 hover:text-slate-700" aria-label="Close">✕</button>
+  </div>
+</div>
+<script src="/static/tracker.js"></script>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

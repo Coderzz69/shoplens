@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in — ShopLens{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto mt-12 bg-white rounded-2xl ring-1 ring-slate-200 p-8">
+  <h1 class="text-2xl font-bold">Log in</h1>
+  <p class="text-sm text-slate-500 mt-1">Customers and suppliers use the same login.</p>
+  {% if error %}<div class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</div>{% endif %}
+  <form method="post" action="/login" class="mt-6 space-y-4">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label class="block text-sm">Email<input name="email" type="email" required class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <label class="block text-sm">Password<input name="password" type="password" required class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+    <button class="w-full rounded-lg bg-brand-600 text-white py-2.5 font-medium hover:bg-brand-700">Log in</button>
+  </form>
+  <p class="text-sm text-center mt-4">New here? <a href="/register" class="text-brand-600 hover:underline">Create an account</a></p>
+  <div class="mt-6 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 space-y-1">
+    <div class="font-semibold text-slate-600">Demo accounts (password <code>demo1234</code>)</div>
+    <div>Customer (Bengaluru, tier-1): <code>customer@shop.test</code></div>
+    <div>Customer (Bihar, tier-3): <code>tier3@shop.test</code></div>
+    <div>Suppliers: <code>supplier1@shop.test</code> … <code>supplier10@shop.test</code></div>
+  </div>
+</div>
+{% endblock %}

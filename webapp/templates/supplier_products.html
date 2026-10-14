@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cause_badge %}
+{% block title %}Products — Seller Hub{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="flex items-center gap-3">
+    <h1 class="text-2xl font-semibold mr-auto">Your products ({{ products|length }})</h1>
+    <form><select name="sort" onchange="this.form.submit()" class="rounded border px-2 py-1 text-sm">
+      {% for k, l in [('lost', 'Most revenue lost'), ('conversion', 'Lowest conversion'), ('name', 'Name')] %}
+      <option value="{{ k }}" {% if sort == k %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></form>
+  </div>
+  <div class="mt-4 rounded-xl bg-white ring-1 ring-slate-200 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs text-slate-500"><tr>
+        <th class="p-3">Product</th><th>Price</th><th>Rating</th><th>Sessions</th><th>Conversion</th><th>Lost to friction</th><th>Top problem</th><th></th></tr></thead>
+      <tbody class="divide-y">
+      {% for p in products %}
+        <tr class="hover:bg-slate-50">
+          <td class="p-3"><div class="flex items-center gap-2"><img src="/img/{{ p.product_id }}/0.svg" class="w-9 h-9 rounded" alt="">
+            <a href="/supplier/product/{{ p.product_id }}" class="font-medium hover:text-brand-600">{{ p.name }}</a></div></td>
+          <td>{{ p.price|inr }}</td><td>{{ '%.1f'|format(p.rating) }}★</td><td>{{ p.sessions }}</td>
+          <td>{{ '%.1f%%'|format(100 * p.converted / p.sessions if p.sessions else 0) }}</td>
+          <td>{{ p.friction }}</td>
+          <td>{% if p.top_cause %}{{ cause_badge(p.top_cause) }}{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
+          <td class="pr-3 text-right"><a href="/supplier/product/{{ p.product_id }}" class="text-brand-600 hover:underline">Diagnose →</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cause_badge, risk_bar %}
+{% block title %}{{ p.name }} — Seller Hub{% endblock %}
+{% block head %}<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+  {% if flash %}<div class="rounded-lg bg-emerald-50 text-emerald-800 px-4 py-3 text-sm">{{ flash }}</div>{% endif %}
+  <div class="flex flex-wrap gap-5 items-start">
+    <img src="/img/{{ p.product_id }}/0.svg" class="w-28 h-28 rounded-xl ring-1 ring-slate-200" alt="">
+    <div class="flex-1 min-w-[16rem]">
+      <div class="text-xs text-slate-500">{{ CATEGORY_LABEL[p.category] }} · {{ p.product_id }}</div>
+      <h1 class="text-2xl font-semibold">{{ p.name }}</h1>
+      <div class="mt-1 text-sm text-slate-600">{{ p.price|inr }} · {{ '%.1f'|format(p.rating) }}★ ({{ p.review_count }}) · {{ p.image_count }} photos{{ ' + video' if p.has_video }} ·
+        {{ (p.return_window_days ~ '-day returns') if p.return_window_days else 'no returns' }} · delivers to {{ p.serviceable_tiers.replace('tier', 'T') }} in {{ p.eta_days }}d ·
+        COD {{ 'on' if p.cod_allowed else 'off' }}</div>
+      <div class="mt-3 flex gap-2 text-sm">
+        <a href="/supplier/product/{{ p.product_id }}/edit" class="rounded-lg border px-3 py-1.5 hover:bg-slate-50">Edit listing</a>
+        <a href="/p/{{ p.product_id }}" target="_blank" class="rounded-lg border px-3 py-1.5 hover:bg-slate-50">View in store ↗</a>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      {% for label, v in [('Sessions', stats.sessions), ('Orders', stats.converted), ('Lost to friction', stats.friction_abandoned)] %}
+      <div class="rounded-xl bg-white ring-1 ring-slate-200 px-4 py-3"><div class="text-xl font-semibold">{{ v }}</div><div class="text-xs text-slate-500">{{ label }}</div></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-4">
+      <h2 class="text-lg font-semibold">Diagnosed problems & solutions</h2>
+      {% for r in insights %}
+      <article id="{{ r.cause }}" class="rounded-xl bg-white ring-1 {{ 'ring-emerald-300' if r.fixed else 'ring-slate-200' }} p-5">
+        <div class="flex flex-wrap items-center gap-2">
+          {{ cause_badge(r.cause) }}
+          <span class="text-sm text-slate-500">{{ r.sessions }} lost sessions · {{ r.share|pct }} of this product's drop-offs · model confidence {{ r.avg_conf|pct }}</span>
+          <span class="ml-auto text-sm font-semibold text-emerald-700">{{ r.recoverable|inr }} <span class="font-normal text-xs text-slate-400">recoverable (est.)</span></span>
+        </div>
+        <div class="mt-4 grid md:grid-cols-2 gap-5">
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Problem — what shoppers did</div>
+            <ul class="mt-2 text-sm space-y-1">
+              {% for e in r.evidence %}<li class="flex gap-2"><span class="text-red-500">●</span>{{ e.text }}</li>{% endfor %}
+            </ul>
+            {% if r.facts %}
+            <div class="mt-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Your listing today</div>
+            <ul class="mt-1 text-sm text-slate-600">{% for f in r.facts %}<li>{{ f }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Proposed solution</div>
+            <p class="mt-2 text-sm">{{ r.solution }}</p>
+            {% if r.fixed %}
+              <div class="mt-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm px-3 py-2">✓ Fix applied {{ r.fixed.ts[:16] }}. New sessions will show whether it worked.</div>
+            {% elif r.fixable and r.quick_fix %}
+              <div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs">
+                <div class="font-semibold text-slate-600">One-click fix will change:</div>
+                <ul class="mt-1 space-y-0.5">{% for k, v in r.quick_fix.items() %}<li><code>{{ k }}</code>: {{ v['from'] }} → <b>{{ v['to'] }}</b></li>{% endfor %}</ul>
+              </div>
+              <form method="post" action="/supplier/product/{{ p.product_id }}/fix/{{ r.cause }}" class="mt-3">
+                <button class="rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm px-4 py-2">Apply fix</button>
+              </form>
+            {% elif r.cause == 'reviews' %}
+              <p class="mt-3 text-xs text-slate-500">Reviews can't be changed directly — ask recent buyers for feedback and address the issues they raise.</p>
+            {% else %}
+              <p class="mt-3 text-xs text-emerald-700">Listing already meets this recommendation.</p>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% else %}
+        <p class="rounded-xl bg-white ring-1 ring-slate-200 p-6 text-sm text-slate-500">No friction diagnosed for this product yet.</p>
+      {% endfor %}
+    </div>
+
+    <aside class="space-y-6">
+      {% if insights %}
+      <section class="rounded-xl bg-white ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-sm">Drop-off causes</h3>
+        <div class="h-56 mt-2"><canvas id="pie"></canvas></div>
+      </section>
+      {% endif %}
+      <section class="rounded-xl bg-white ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-sm">Live shoppers on this product</h3>
+        <ul class="mt-2 text-sm divide-y">
+          {% for l in live %}
+          <li class="py-2"><a href="/supplier/session/{{ l.session_id }}" class="flex items-center gap-2 hover:text-brand-600">
+            <span class="flex-1">{{ l.customer or 'Guest' }}</span>{{ risk_bar(l.risk) }}</a></li>
+          {% else %}<li class="py-2 text-slate-400">None yet.</li>{% endfor %}
+        </ul>
+      </section>
+      <section class="rounded-xl bg-white ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-sm">Customer complaints</h3>
+        <ul class="mt-2 text-sm space-y-2">
+          {% for t in tickets %}<li><span class="text-xs rounded bg-slate-100 px-1.5">{{ t.channel }}</span> “{{ t.text }}”</li>
+          {% else %}<li class="text-slate-400">No tickets.</li>{% endfor %}
+        </ul>
+      </section>
+      <section class="rounded-xl bg-white ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-sm">Reviews</h3>
+        <ul class="mt-2 text-sm space-y-1">{% for r in reviews %}<li>{{ r.stars }}★ {{ r.text }}</li>{% else %}<li class="text-slate-400">No reviews.</li>{% endfor %}</ul>
+      </section>
+      {% if fixes %}
+      <section class="rounded-xl bg-white ring-1 ring-slate-200 p-5">
+        <h3 class="font-semibold text-sm">Change history</h3>
+        <ul class="mt-2 text-xs space-y-2">
+          {% for f in fixes %}<li><div class="text-slate-500">{{ f.ts[:16] }} · {{ LABEL.get(f.cause, 'Manual edit') }}</div>
+            {% for k, v in f.changes.items() %}<div><code>{{ k }}</code> {{ v['from'] }} → {{ v['to'] }}</div>{% endfor %}</li>{% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const ins = {{ insights|map(attribute='cause')|list|tojson }};
+  const vals = {{ insights|map(attribute='sessions')|list|tojson }};
+  const labels = {{ LABEL|tojson }};
+  if (ins.length && window.Chart) new Chart(document.getElementById('pie'), {
+    type: 'doughnut', data: { labels: ins.map(c => labels[c]), datasets: [{ data: vals,
+      backgroundColor: ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6', '#ef4444', '#84cc16', '#14b8a6', '#d946ef'] }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+  });
+</script>
+{% endblock %}

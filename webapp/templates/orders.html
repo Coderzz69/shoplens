@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Orders — ShopLens{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-semibold">Your orders</h1>
+  <div class="mt-4 space-y-2">
+    {% for o in orders %}
+    <a href="/orders/{{ o.order_id }}" class="flex justify-between rounded-xl bg-white ring-1 ring-slate-200 p-4 hover:ring-brand-500">
+      <span><span class="font-mono text-sm">{{ o.order_id }}</span> <span class="text-slate-500 text-sm">· {{ o.ts[:16].replace('T', ' ') }} · {{ METHOD_LABEL[o.method] }}</span></span>
+      <span class="font-semibold">{{ o.amount|inr }}</span>
+    </a>
+    {% else %}<p class="text-slate-500">No orders yet.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

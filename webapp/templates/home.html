@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block content %}
+<section class="bg-gradient-to-r from-brand-600 to-violet-600 text-white">
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold">Everything you need, delivered.</h1>
+    <p class="mt-2 text-brand-100">Groceries in hours, electronics with warranty, fashion with easy returns.</p>
+  </div>
+</section>
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-10">
+  <section>
+    <h2 class="text-xl font-semibold mb-3">🔥 Today's deals</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      {% for p in deals %}{{ card(p, 'product_clicked', {'position': loop.index, 'list': 'deals'}) }}{% endfor %}
+    </div>
+  </section>
+  {% for c, products in rails.items() %}
+  <section>
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="text-xl font-semibold">{{ CATEGORY_LABEL[c] }}</h2>
+      <a href="/c/{{ c }}" class="text-sm text-brand-600 hover:underline">See all →</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      {% for p in products %}{{ card(p, 'product_clicked', {'position': loop.index, 'list': c}) }}{% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}{{ CATEGORY_LABEL[category] }} — ShopLens{% endblock %}
+{% block body_attrs %}data-category="{{ category }}"{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="flex flex-wrap items-center gap-3">
+    <h1 class="text-2xl font-semibold mr-auto">{{ CATEGORY_LABEL[category] }}</h1>
+    <form class="flex items-center gap-3 text-sm">
+      {% if pincode %}
+      <label class="flex items-center gap-1"><input type="checkbox" name="deliverable" value="1" {% if deliverable %}checked{% endif %}
+             onchange="this.form.submit()" data-track-change="filter_applied"> Delivers to {{ pincode }}</label>
+      {% endif %}
+      <select name="sort" onchange="this.form.submit()" class="rounded border px-2 py-1" data-track-change="sort_changed">
+        {% for k, l in [('popular','Popularity'),('price_low','Price: low to high'),('price_high','Price: high to low'),('rating','Rating')] %}
+        <option value="{{ k }}" {% if sort == k %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+  <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    {% for p in products %}{{ card(p, 'product_clicked', {'position': loop.index}) }}{% endfor %}
+  </div>
+  {% if not products %}<p class="mt-8 text-slate-500">No products match these filters.</p>{% endif %}
+</div>
+{% endblock %}

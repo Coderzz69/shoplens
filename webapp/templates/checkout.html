@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Checkout — ShopLens{% endblock %}
+{% block body_attrs %}data-product="{{ last.product_id }}" data-category="{{ last.category }}"{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+  <ol class="flex gap-4 text-sm text-slate-400"><li class="text-brand-600 font-semibold">1. Address</li><li>2. Payment</li><li>3. Done</li></ol>
+  <div class="mt-4 rounded-xl bg-white ring-1 ring-slate-200 p-6">
+    <h1 class="text-xl font-semibold">Delivery address</h1>
+    {% if error %}<div class="mt-3 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</div>{% endif %}
+    {% if blocked %}
+      <ul class="mt-2 text-sm text-red-700 list-disc pl-5">{% for b in blocked %}<li>{{ b.name }} doesn't deliver to {{ pincode }}</li>{% endfor %}</ul>
+    {% endif %}
+    <form method="post" action="/checkout" class="mt-4 space-y-3">
+      <label class="block text-sm">Address<textarea name="address" required rows="2" class="mt-1 w-full rounded-lg border px-3 py-2">{{ user.name }}, 12 Example Street</textarea></label>
+      <label class="block text-sm">Pincode<input name="pincode" value="{{ pincode }}" required maxlength="6" inputmode="numeric" class="mt-1 w-40 rounded-lg border px-3 py-2"></label>
+      <button class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 font-semibold">Deliver here</button>
+    </form>
+  </div>
+  <div class="mt-4 rounded-xl bg-white ring-1 ring-slate-200 p-4 text-sm flex justify-between">
+    <span>{{ lines|length }} item(s)</span><span class="font-semibold">{{ totals.total|inr }}</span>
+  </div>
+</div>
+{% endblock %}

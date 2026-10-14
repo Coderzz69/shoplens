@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cause_badge, risk_bar %}
+{% block title %}Live sessions — Seller Hub{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="10">{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-semibold">Live sessions</h1>
+  <p class="text-sm text-slate-500">Shoppers browsing your products right now, scored by the drop-risk and cause models. Auto-refreshes every 10s.</p>
+  <div class="mt-4 rounded-xl bg-white ring-1 ring-slate-200 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs text-slate-500"><tr><th class="p-3">Updated</th><th>Shopper</th><th>Product</th><th>Events</th><th>Drop risk</th><th>Likely problem</th><th>Evidence</th><th>Nudges</th></tr></thead>
+      <tbody class="divide-y">
+      {% for l in live %}
+        <tr class="hover:bg-slate-50 cursor-pointer" onclick="location='/supplier/session/{{ l.session_id }}'">
+          <td class="p-3 text-xs text-slate-500 whitespace-nowrap">{{ l.updated_at[11:19] }}</td>
+          <td>{{ l.customer or 'Guest' }}{% if l.converted %}<div class="text-xs text-emerald-700">ordered</div>{% endif %}</td>
+          <td class="max-w-[14rem] truncate">{{ l.name }}</td><td>{{ l.n_events }}</td>
+          <td>{{ risk_bar(l.risk) }}</td><td>{{ cause_badge(l.cause if l.cause_conf >= 0.5 else 'none') }}</td>
+          <td class="text-xs text-slate-600 max-w-xs">{{ l.evidence[:2]|map(attribute='text')|join('; ') }}</td>
+          <td class="text-xs">{{ l.nudges or '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="p-8 text-center text-slate-400">No live sessions on your products yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
